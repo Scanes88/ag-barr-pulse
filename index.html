@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Performance Pulse Dashboard | AG Barr</title>
+<style>
+  :root{
+    --navy:#1B2A4A;
+    --orange:#E87722;
+    --body:#333333;
+    --grey:#666666;
+    --line:#E5E7EB;
+    --bg:#FAFAFA;
+    --card:#FFFFFF;
+    --green:#16A34A;
+    --amber:#F59E0B;
+    --red:#DC2626;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);font-family:'Jost',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:var(--body);}
+  .wrap{max-width:1400px;margin:0 auto;padding:32px 24px 80px;}
+  header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid var(--orange);padding-bottom:18px;margin-bottom:28px;}
+  .brand-mark{font-size:18px;font-weight:700;color:var(--navy);letter-spacing:0.5px;}
+  .brand-mark span{color:var(--orange);}
+  .brand-tag{font-size:11px;color:var(--grey);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;}
+  h1{font-size:38px;color:var(--navy);font-weight:700;margin:0 0 4px;}
+  h1 .accent{color:var(--orange);}
+  .sub{color:var(--grey);font-size:15px;margin-bottom:0;}
+  .meta{font-size:12px;color:var(--grey);text-transform:uppercase;letter-spacing:1.2px;margin-top:8px;}
+  section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:24px 28px;margin-bottom:22px;box-shadow:0 1px 2px rgba(0,0,0,0.03);}
+  .section-label{font-size:12px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+  .section-title{font-size:24px;color:var(--navy);font-weight:700;margin:0 0 4px;}
+  .section-sub{font-size:14px;color:var(--grey);margin:0 0 18px;}
+  .grid{display:grid;gap:18px;}
+  .grid-4{grid-template-columns:repeat(4,1fr);}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+  .grid-2{grid-template-columns:repeat(2,1fr);}
+  @media (max-width:980px){.grid-4{grid-template-columns:repeat(2,1fr);}.grid-3,.grid-2{grid-template-columns:1fr;}}
+  .stat{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--orange);border-radius:8px;padding:18px 20px;}
+  .stat .label{font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:1.3px;}
+  .stat .value{font-size:42px;font-weight:700;color:var(--navy);line-height:1;margin:8px 0 4px;}
+  .stat .ctx{font-size:12px;color:var(--grey);}
+  .stat.green{border-left-color:var(--green);}
+  .stat.amber{border-left-color:var(--amber);}
+  .stat.red{border-left-color:var(--red);}
+  .pill{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:3px 8px;border-radius:99px;}
+  .pill.green{background:#DCFCE7;color:#166534;}
+  .pill.amber{background:#FEF3C7;color:#92400E;}
+  .pill.red{background:#FEE2E2;color:#991B1B;}
+  .pill.navy{background:#E0E7FF;color:var(--navy);}
+  .bar{height:10px;background:#EEE;border-radius:6px;overflow:hidden;margin:6px 0 4px;}
+  .bar > div{height:100%;background:var(--orange);}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line);}
+  .row:last-child{border-bottom:none;}
+  .row .name{font-size:13px;color:var(--navy);font-weight:600;flex:1;}
+  .row .pct{font-size:13px;color:var(--orange);font-weight:700;width:60px;text-align:right;}
+  .row .count{font-size:11px;color:var(--grey);width:60px;text-align:right;}
+  .row-bar{height:8px;background:#F3F4F6;border-radius:4px;overflow:hidden;width:160px;margin:0 12px;}
+  .row-bar > div{height:100%;background:var(--orange);}
+  .quote{border-left:4px solid var(--orange);background:#FFF8F2;padding:12px 16px;margin:10px 0;font-style:italic;color:var(--navy);font-size:14px;line-height:1.5;border-radius:0 6px 6px 0;}
+  .quote.dark{background:#F3F4F6;border-left-color:var(--navy);color:var(--navy);}
+  .quote.crit{background:#FEF2F2;border-left-color:var(--red);color:#7F1D1D;}
+  .insight{background:#FFF;border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-top:16px;}
+  .insight .lbl{font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:4px;}
+  .insight p{margin:0;font-size:13px;color:var(--body);font-style:italic;line-height:1.5;}
+  .donut{position:relative;width:160px;height:160px;margin:0 auto;}
+  .donut svg{width:100%;height:100%;transform:rotate(-90deg);}
+  .donut .num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;font-weight:700;color:var(--navy);}
+  .donut .lbl{position:absolute;top:65%;left:50%;transform:translate(-50%,0);font-size:11px;color:var(--grey);font-weight:600;text-transform:uppercase;letter-spacing:1px;}
+  .nps-bar{display:flex;height:18px;border-radius:99px;overflow:hidden;margin:14px 0 8px;}
+  .nps-bar > div:nth-child(1){background:var(--red);}
+  .nps-bar > div:nth-child(2){background:var(--amber);}
+  .nps-bar > div:nth-child(3){background:var(--green);}
+  .nps-legend{display:flex;justify-content:space-between;font-size:11px;color:var(--grey);}
+  .nps-legend strong{color:var(--navy);font-size:14px;display:block;}
+  .three-up{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px;}
+  .three-up .card{padding:16px;background:#FAFBFC;border:1px solid var(--line);border-radius:8px;}
+  .three-up h4{margin:0 0 6px;color:var(--navy);font-size:14px;font-weight:700;}
+  .three-up small{color:var(--grey);font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700;}
+  .three-up p{margin:6px 0 0;font-size:12px;color:var(--body);line-height:1.45;}
+  .map-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
+  .principle{padding:18px;border-radius:8px;background:linear-gradient(180deg,#FFF8F2 0%,#FFFFFF 100%);border:1px solid var(--line);border-top:4px solid var(--orange);}
+  .principle h4{margin:0 0 6px;color:var(--navy);font-size:16px;}
+  .principle .conn{font-size:11px;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+  .principle p{margin:8px 0 0;font-size:12px;color:var(--body);line-height:1.5;}
+  .principle .gap{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:11px;color:var(--grey);}
+  .principle .gap strong{color:var(--navy);}
+  .footer{font-size:11px;color:var(--grey);text-align:center;padding-top:20px;border-top:1px solid var(--line);margin-top:30px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{background:var(--navy);color:#FFF;text-align:left;padding:10px 12px;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;}
+  td{padding:10px 12px;border-bottom:1px solid var(--line);}
+  td.label{color:var(--orange);font-weight:700;}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--grey);margin-top:8px;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .swatch{width:10px;height:10px;border-radius:2px;display:inline-block;}
+  .verdict{padding:14px 18px;background:var(--navy);color:#FFF;border-radius:8px;margin-top:16px;}
+  .verdict h4{margin:0 0 6px;color:#FFF;font-size:14px;text-transform:uppercase;letter-spacing:1.5px;}
+  .verdict p{margin:0;color:#FFF;font-size:13px;line-height:1.55;}
+  .pie{position:relative;width:200px;height:200px;margin:0 auto 12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <div class="brand-mark">AG Barr <span>PERFORMANCE</span></div>
+    <div class="brand-tag">People Performance | Dare to Double</div>
+  </div>
+  <div style="text-align:right;">
+    <div style="font-size:11px;color:var(--grey);text-transform:uppercase;letter-spacing:1.3px;font-weight:700;">Pulse Dashboard</div>
+    <div style="font-size:13px;color:var(--navy);margin-top:2px;">Wave 1 Baseline | April 2026</div>
+  </div>
+</header>
+
+<h1>Performance Pulse <span class="accent">Dashboard</span></h1>
+<p class="sub">All-staff baseline against the Dare to Double ambition - results, themes, sentiment, and what it means for the People Performance plan.</p>
+<p class="meta">504 responses | 55% response rate | 5 questions | 1 ambition</p>
+
+<!-- HEADLINE NUMBERS -->
+<section>
+  <div class="section-label">Section One</div>
+  <h2 class="section-title">Headline Numbers</h2>
+  <p class="section-sub">The trackable baseline. Where we sit today, and how we compare.</p>
+
+  <div class="grid grid-4">
+    <div class="stat green">
+      <div class="label">Engagement</div>
+      <div class="value">76%</div>
+      <div class="ctx">Industry 79% | Global 78% <span class="pill amber" style="margin-left:6px;">3 pts below</span></div>
+    </div>
+    <div class="stat amber">
+      <div class="label">Pride in D2D (Q1)</div>
+      <div class="value">75%</div>
+      <div class="ctx">Avg score 7.5/10 | Room to deepen ownership</div>
+    </div>
+    <div class="stat green">
+      <div class="label">eNPS (Q5)</div>
+      <div class="value">+18</div>
+      <div class="ctx">Avg 8.0/10 | Improvement advised by WorkL</div>
+    </div>
+    <div class="stat amber">
+      <div class="label">Instilling Pride (WorkL)</div>
+      <div class="value">76%</div>
+      <div class="ctx">Industry 79% | Global 79% <span class="pill amber" style="margin-left:6px;">3 pts below</span></div>
+    </div>
+  </div>
+
+  <div class="three-up" style="margin-top:18px;">
+    <div class="card">
+      <small>Response rate</small>
+      <h4>55% of the workforce</h4>
+      <p>Above the threshold required for confident reporting. Sample is well-distributed across business areas and locations - the picture is representative.</p>
+    </div>
+    <div class="card">
+      <small>Where the responses came from</small>
+      <h4>Supply Chain 50% | Commercial 30% | Central 20%</h4>
+      <p>By location: Cumbernauld 49% | Milton Keynes 19% | Field 16% | Middlebrook 10% | London 7%. The voice you are reading is largely operational and Scottish-weighted.</p>
+    </div>
+    <div class="card">
+      <small>Behavioural read</small>
+      <h4>Strong promoter base, hardening detractor base</h4>
+      <p>43% Promoters, 32% Passives, 25% Detractors. One in four colleagues would actively not recommend AG Barr today. That is the lever to move.</p>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="lbl">High-performance read</div>
+    <p>Engagement and pride scores sit in the "good" band but consistently 3 points below industry and global. The headline is not weakness - it is unconverted potential. The 25% detractor block is where the eNPS will move. This is a starting line, not a finish line.</p>
+  </div>
+</section>
+
+<!-- eNPS BREAKDOWN -->
+<section>
+  <div class="section-label">Section Two</div>
+  <h2 class="section-title">Employee Net Promoter Score</h2>
+  <p class="section-sub">Would you recommend AG Barr as a great place to work? - the single most-tracked engagement metric worldwide.</p>
+
+  <div class="grid grid-2" style="align-items:start;">
+    <div>
+      <div class="nps-bar">
+        <div style="width:25%;"></div>
+        <div style="width:32%;"></div>
+        <div style="width:43%;"></div>
+      </div>
+      <div class="nps-legend">
+        <span><strong>25%</strong>Detractors (0-6)</span>
+        <span><strong>32%</strong>Passives (7-8)</span>
+        <span><strong>43%</strong>Promoters (9-10)</span>
+      </div>
+      <div style="margin-top:18px;font-size:13px;color:var(--body);line-height:1.55;">
+        <strong style="color:var(--navy);">Score: +18</strong> (Promoters minus Detractors). WorkL classifies this as "improvement advised". The promoter base is strong - 43% of colleagues would actively recommend AG Barr today. The risk is the 25% detractor block: that group is more vocal in the free text and represents the ceiling on engagement growth.
+      </div>
+    </div>
+    <div>
+      <table>
+        <thead>
+          <tr><th>Score</th><th>% of responses</th><th>Tier</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="label">10</td><td>23%</td><td><span class="pill green">Promoter</span></td></tr>
+          <tr><td class="label">9</td><td>20%</td><td><span class="pill green">Promoter</span></td></tr>
+          <tr><td class="label">8</td><td>18%</td><td><span class="pill amber">Passive</span></td></tr>
+          <tr><td class="label">7</td><td>14%</td><td><span class="pill amber">Passive</span></td></tr>
+          <tr><td class="label">6</td><td>9%</td><td><span class="pill red">Detractor</span></td></tr>
+          <tr><td class="label">5</td><td>9%</td><td><span class="pill red">Detractor</span></td></tr>
+          <tr><td class="label">0-4</td><td>9%</td><td><span class="pill red">Detractor</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Q2 THEMES -->
+<section>
+  <div class="section-label">Section Three</div>
+  <h2 class="section-title">Q2 - What Dare to Double Means Personally</h2>
+  <p class="section-sub">499 free-text responses. The deepest signal of emotional connection to the ambition.</p>
+
+  <div class="grid grid-2" style="align-items:start;">
+    <div>
+      <div class="row"><div class="name">Pride &amp; Legacy</div><div class="row-bar"><div style="width:100%;"></div></div><div class="pct">43%</div></div>
+      <div class="row"><div class="name">Financial reward / bonus / share value</div><div class="row-bar"><div style="width:77%;"></div></div><div class="pct">33%</div></div>
+      <div class="row"><div class="name">Family stability &amp; home life</div><div class="row-bar"><div style="width:49%;"></div></div><div class="pct">21%</div></div>
+      <div class="row"><div class="name">Job security / long-term future</div><div class="row-bar"><div style="width:43%;"></div></div><div class="pct">19%</div></div>
+      <div class="row"><div class="name">Belonging / part of something bigger</div><div class="row-bar"><div style="width:38%;"></div></div><div class="pct">16%</div></div>
+      <div class="row"><div class="name">Career growth &amp; opportunity</div><div class="row-bar"><div style="width:26%;"></div></div><div class="pct">11%</div></div>
+      <div class="row"><div class="name">Sceptical / "nothing" / not realistic</div><div class="row-bar" style="background:#FEE2E2;"><div style="width:21%;background:var(--red);"></div></div><div class="pct" style="color:var(--red);">9%</div></div>
+      <div class="row"><div class="name">Unsure / haven't thought about it</div><div class="row-bar" style="background:#FEF3C7;"><div style="width:7%;background:var(--amber);"></div></div><div class="pct" style="color:var(--amber);">3%</div></div>
+    </div>
+    <div>
+      <div class="quote">"Stability and Future Security including financial benefits to support my family. Opportunity and Development, Pride and Shared Purpose."</div>
+      <div class="quote">"It would mean we have built a legacy that we could all be proud of, somewhere for my grandchildren to work."</div>
+      <div class="quote">"Would make me proud to be part of the team that achieved Dare to Double. My wife and daughter would be delighted as well if it led to a cash bonus - I'd spend it on a family holiday."</div>
+      <div class="quote crit">"Absolutely nothing. We were promised a full pay review and increase to match the market and that never happened, so, nothing."</div>
+      <div class="quote crit">"Honestly - it doesn't mean anything for me personally and my family aren't aware of it."</div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="lbl">Sentiment read</div>
+    <p>Pride beats money 43% to 33%. That matters. People are not transactional first. They want to be proud of what they helped build. But 12% combined are sceptical or unsure - and the sceptics are explicit: scepticism is not vague, it is anchored to past pay promises and current workload pressure. This is the gap to close.</p>
+  </div>
+</section>
+
+<!-- Q3 THEMES -->
+<section>
+  <div class="section-label">Section Four</div>
+  <h2 class="section-title">Q3 - What a Best-Performing Team Looks Like</h2>
+  <p class="section-sub">503 responses. The lived definition of high performance, in colleagues' own words.</p>
+
+  <div class="grid grid-2" style="align-items:start;">
+    <div>
+      <div class="row"><div class="name">Energy / morale / fun / happiness</div><div class="row-bar"><div style="width:100%;"></div></div><div class="pct">30%</div></div>
+      <div class="row"><div class="name">Collaboration / aligned / one team</div><div class="row-bar"><div style="width:62%;"></div></div><div class="pct">19%</div></div>
+      <div class="row"><div class="name">Delivering results / hitting targets</div><div class="row-bar"><div style="width:60%;"></div></div><div class="pct">18%</div></div>
+      <div class="row"><div class="name">Communication / open dialogue</div><div class="row-bar"><div style="width:43%;"></div></div><div class="pct">13%</div></div>
+      <div class="row"><div class="name">Trust / safety / supporting each other</div><div class="row-bar"><div style="width:42%;"></div></div><div class="pct">13%</div></div>
+      <div class="row"><div class="name">Clarity / direction / shared priorities</div><div class="row-bar"><div style="width:36%;"></div></div><div class="pct">11%</div></div>
+      <div class="row"><div class="name">Ownership / accountability / standards</div><div class="row-bar"><div style="width:28%;"></div></div><div class="pct">8%</div></div>
+      <div class="row"><div class="name">Proactive vs firefighting / autonomy</div><div class="row-bar"><div style="width:14%;"></div></div><div class="pct">4%</div></div>
+    </div>
+    <div>
+      <div class="quote">"High energy, effort, pride, low friction, and ownership."</div>
+      <div class="quote">"It's a high-trust environment where proactive problem-solving replaces firefighting. The team operates with autonomy, taking extreme ownership."</div>
+      <div class="quote">"People are wearing smiles. We know there is work to do, but we can see the dial turning towards our target."</div>
+      <div class="quote">"Performance peaks when our workload is aligned with our capacity - excellence without the burnout caused by over-extension."</div>
+      <div class="quote crit">"Our team dynamic is excellent and highly energetic when performing well, however that energy significantly dips under the pressure of unrealistic timelines."</div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="lbl">Behavioural read</div>
+    <p>People do not describe high performance as "hitting numbers". They describe it as how it feels: energetic, aligned, proactive, supported. That is gold. The 30% who used emotional or energy-based language are telling us that performance lives in mood, climate, and pace, not in a KPI. Protect this vocabulary - it is the language the organisation already speaks.</p>
+  </div>
+</section>
+
+<!-- Q4 THEMES -->
+<section>
+  <div class="section-label">Section Five</div>
+  <h2 class="section-title">Q4 - One Thing We Need More Of</h2>
+  <p class="section-sub">499 responses. The single most actionable signal in the survey - what the workforce wants leadership to do next.</p>
+
+  <div class="grid grid-2" style="align-items:start;">
+    <div>
+      <div class="row"><div class="name">Communication (frequency, clarity, two-way)</div><div class="row-bar"><div style="width:100%;"></div></div><div class="pct">20%</div></div>
+      <div class="row"><div class="name">Time / capacity / less change at once</div><div class="row-bar"><div style="width:95%;"></div></div><div class="pct">19%</div></div>
+      <div class="row"><div class="name">Resource / headcount / people</div><div class="row-bar"><div style="width:54%;"></div></div><div class="pct">11%</div></div>
+      <div class="row"><div class="name">Leadership clarity / decisions / direction</div><div class="row-bar"><div style="width:54%;"></div></div><div class="pct">11%</div></div>
+      <div class="row"><div class="name">Cross-functional / break the silos</div><div class="row-bar"><div style="width:52%;"></div></div><div class="pct">10%</div></div>
+      <div class="row"><div class="name">Recognition / celebration / praise</div><div class="row-bar"><div style="width:39%;"></div></div><div class="pct">8%</div></div>
+      <div class="row"><div class="name">Fun / enjoyment / wellbeing</div><div class="row-bar"><div style="width:37%;"></div></div><div class="pct">7%</div></div>
+      <div class="row"><div class="name">Training / development / upskill</div><div class="row-bar"><div style="width:36%;"></div></div><div class="pct">7%</div></div>
+      <div class="row"><div class="name">Tools / systems / IT / equipment</div><div class="row-bar"><div style="width:35%;"></div></div><div class="pct">7%</div></div>
+      <div class="row"><div class="name">Trust / honesty / openness</div><div class="row-bar"><div style="width:23%;"></div></div><div class="pct">5%</div></div>
+    </div>
+    <div>
+      <div class="quote">"Less change at one time. Far too much being pushed through without closure of stages."</div>
+      <div class="quote">"Time. Everything right now is required immediately or ASAP. We no longer have time to reflect and evaluate."</div>
+      <div class="quote">"Cross-functional working rather than working in silos, pushing teams to change gear rather than coasting."</div>
+      <div class="quote">"More fun, it can all be very serious. The targets are extremely stretching and everyone seems to be under a lot of pressure - some light relief."</div>
+      <div class="quote">"Recognition. The warehouse team often go above and beyond to meet the business needs without recognition from the wider business."</div>
+      <div class="quote">"Decision making. We can bring as many ideas to the table as we want, but they will stay as ideas until someone pulls the trigger."</div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="lbl">Action read</div>
+    <p>The top two asks are essentially one ask: "give us the bandwidth and the dialogue to do the work well." Communication and time/capacity together account for 39% of all responses. Resource, leadership clarity, and cross-functional working stack on top. This is the workforce telling leadership the same thing the Higher Performance Workshops told us - prioritise, communicate, run fewer better meetings, work as one team.</p>
+  </div>
+</section>
+
+<!-- ALIGNMENT WITH HP WORKSHOPS -->
+<section>
+  <div class="section-label">Section Six</div>
+  <h2 class="section-title">The Pulse and the Workshops Are Saying the Same Thing</h2>
+  <p class="section-sub">The all-staff data validates what 15 leadership teams already named in the Higher Performance Workshops.</p>
+
+  <table>
+    <thead>
+      <tr><th>HP Workshop Universal Theme</th><th>Pulse Survey Signal</th><th>Alignment</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="label">The Coaching Gap (11/15 teams)</td><td>11% Q4 ask for "leadership clarity / decisions / direction"; 13% Q3 reference trust &amp; support</td><td><span class="pill green">Confirmed</span></td></tr>
+      <tr><td class="label">Prioritisation Trap (13/15 teams)</td><td>19% Q4 ask for "less change at one time / time / capacity"; 30% Q3 describe peak as energy NOT firefighting</td><td><span class="pill green">Strongly confirmed</span></td></tr>
+      <tr><td class="label">Meeting Culture (10/15 teams)</td><td>20% Q4 ask for better communication; explicit calls for "less internal meetings", "fewer virtual, more in person"</td><td><span class="pill green">Confirmed</span></td></tr>
+      <tr><td class="label">Communication, Trust, Clarity (top HP words)</td><td>Same three concepts dominate Q3 best-team descriptions and Q4 asks</td><td><span class="pill green">Strongly confirmed</span></td></tr>
+      <tr><td class="label">One Team / Cross-functional</td><td>10% explicitly ask for cross-functional / silo-breaking; 19% describe peak performance as alignment</td><td><span class="pill green">Confirmed</span></td></tr>
+      <tr><td class="label">Recognition &amp; Celebration</td><td>8% Q4 explicit ask; sceptical Q2 responses anchor to a feeling of "extra work, no extra recognition"</td><td><span class="pill amber">New / louder than expected</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="insight">
+    <div class="lbl">What this means</div>
+    <p>The diagnosis is now triangulated. Leadership teams said it. The all-staff base is now saying it too - in their own words, unprompted, anonymously. There is no perception gap to close between top and bottom. The work shifts from naming the problem to executing on it.</p>
+  </div>
+</section>
+
+<!-- CONNECTING PAGE: PULSE -> HP WORKSHOPS -> Q2-4 PLAN -->
+<section style="background:linear-gradient(180deg,#FFFFFF 0%,#FFF8F2 100%);border:2px solid var(--orange);">
+  <div class="section-label">Section Seven</div>
+  <h2 class="section-title">From Insight to Action - The Three Principles</h2>
+  <p class="section-sub">How the Pulse data validates the People Performance Q2-Q4 plan, and where it sharpens it.</p>
+
+  <div class="map-row">
+    <div class="principle">
+      <div class="conn">Principle 1</div>
+      <h4>Coaching for Performance</h4>
+      <p>HP Workshops named the Coaching Gap in 11/15 teams. The Pulse confirms: 11% of staff want clearer leadership decisions and direction; 13% describe peak teams as trusting and supportive; 4% explicitly contrast "proactive" with "firefighting".</p>
+      <div class="gap"><strong>Pulse sharpens this:</strong> staff are not asking for more coaching frameworks - they are asking for leaders who say no to the next initiative, then coach the team through delivery of the current one.</div>
+    </div>
+    <div class="principle">
+      <div class="conn">Principle 2</div>
+      <h4>Prioritisation</h4>
+      <p>HP Workshops named the Prioritisation Trap in 13/15 teams. The Pulse confirms with the survey's loudest single ask: 19% want "less change at one time / time / capacity". Combined with 11% asking for clearer leadership decisions, this is the dominant signal.</p>
+      <div class="gap"><strong>Pulse sharpens this:</strong> the request is not "fewer projects in theory" - it is "close one stage before opening the next". Discipline of completion, not just selection.</div>
+    </div>
+    <div class="principle">
+      <div class="conn">Principle 3</div>
+      <h4>Meetings</h4>
+      <p>HP Workshops named meeting culture in 10/15 teams. The Pulse adds the staff voice: 20% want better communication, with explicit asks for fewer internal meetings, less virtual, more face-to-face, and meetings that produce decisions.</p>
+      <div class="gap"><strong>Pulse sharpens this:</strong> meetings are not just a calendar problem - they are the proxy for whether leadership is making decisions. Charter discipline must include "decision made" as the success measure.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;">
+    <h4 style="color:var(--navy);font-size:18px;margin-bottom:8px;">Where the Pulse adds something the Q2-Q4 Plan does not yet address</h4>
+    <div class="grid grid-3">
+      <div class="card three-up" style="display:block;padding:16px;background:#FFF;border:1px solid var(--line);border-radius:8px;">
+        <small>Gap 1</small>
+        <h4 style="color:var(--navy);">Reward &amp; Recognition is louder than expected</h4>
+        <p>Sceptical Q2 responses anchor to "extra work, same pay, smaller bonus". 8% Q4 ask for recognition. This is not in the 3 Principles. It needs a deliberate response - either a policy answer or an honest narrative.</p>
+      </div>
+      <div class="card" style="padding:16px;background:#FFF;border:1px solid var(--line);border-radius:8px;">
+        <small>Gap 2</small>
+        <h4 style="color:var(--navy);">D2D translation for the personal stake</h4>
+        <p>12% are sceptical or unsure what D2D means for them. The Pulse exposes a comms gap - the ambition is known but the personal "what's in it for me" has not landed. Q2 staff video and roadshow needs to close this.</p>
+      </div>
+      <div class="card" style="padding:16px;background:#FFF;border:1px solid var(--line);border-radius:8px;">
+        <small>Gap 3</small>
+        <h4 style="color:var(--navy);">Fun, enjoyment, human-ness</h4>
+        <p>7% Q4 ask for fun and wellbeing. Q3 best-team language is dominated by energy and morale. The plan is rigorous - it needs a deliberate human and joyful counterweight or the workforce will read it as more pressure.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <h4>The Verdict</h4>
+    <p>The Pulse is not a new dataset. It is the all-staff voice confirming what the leadership teams already said in their own workshops. The Q2-Q4 plan is built on the right three principles. The Pulse asks us to do three additional things: address recognition and reward head-on, close the D2D personal-meaning gap with relentless human comms, and keep joy and energy as deliberate design choices, not afterthoughts. When AG Barr achieves Dare to Double, it will be because of who we became - not what we chased.</p>
+  </div>
+</section>
+
+<div class="footer">
+  AG Barr | Performance Pulse Dashboard | People Performance Team | Wave 1 Baseline | April 2026
+</div>
+
+</div>
+</body>
+</html>
